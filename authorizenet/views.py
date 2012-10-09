@@ -4,6 +4,7 @@ except ImportError:
     import md5 as hashlib
 
 from django.conf import settings
+from django.shortcuts import redirect
 from django.views.generic.simple import direct_to_template
 from django.views.decorators.csrf import csrf_exempt
 
@@ -54,11 +55,13 @@ class AIMPayment(object):
                  shipping_form_class=None,
                  payment_template="authorizenet/aim_payment.html",
                  success_template='authorizenet/aim_success.html',
+                 success_view=None,
                  initial_data={}):
         self.extra_data = extra_data
         self.payment_form_class = payment_form_class
         self.payment_template = payment_template
         self.success_template = success_template
+        self.success_view = success_view
         self.context = context
         self.initial_data = initial_data
         self.billing_form_class = billing_form_class
@@ -86,25 +89,27 @@ class AIMPayment(object):
     def validate_payment_form(self):
         payment_form = self.payment_form_class(self.request.POST)
         billing_form = self.billing_form_class(self.request.POST)
-        
+
         if self.shipping_form_class:
             shipping_form = self.shipping_form_class(self.request.POST)
 
         #if shipping for exists also validate it
         if payment_form.is_valid() and billing_form.is_valid() and (not self.shipping_form_class or shipping_form.is_valid()):
-            
+
             if not self.shipping_form_class:
                 args = payment_form, billing_form
             else:
                 args = payment_form, billing_form, shipping_form
-            
+
             form_data = combine_form_data(*args)
             response = process_payment(form_data, self.extra_data)
             self.context['response'] = response
             if response.is_approved:
-                return direct_to_template(self.request,
-                                          self.success_template,
-                                          self.context)
+                if self.success_view is None:
+                    return direct_to_template(self.request,
+                                              self.success_template,
+                                              self.context)
+                return redirect(self.success_view)
             else:
                 self.context['errors'] = self.processing_error
         self.context['payment_form'] = payment_form
