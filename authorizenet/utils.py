@@ -29,7 +29,10 @@ AIM_DEFAULT_DICT = {
     'x_delim_char': getattr(settings, 'AUTHNET_DELIM_CHAR', "|"),
     'x_relay_response': "FALSE",
     'x_type': "AUTH_CAPTURE",
-    'x_method': "CC"
+    'x_method': "CC",
+    'x_market_type': getattr(settings, 'AUTHNET_MARKET_TYPE', '2'),
+    'x_device_type': '8',
+    'x_response_format': '1'
 }
 
 

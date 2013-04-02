@@ -30,4 +30,5 @@ class AIMPaymentHelper(object):
         response_list = re.split("(?<!\\\\)\%s" % c, response)
         response_list = map(lambda s: s.replace("\\%s" % c, c),
                             response_list)
+        response_list[0] = response_list[0].split('.')[0]
         return response_list
